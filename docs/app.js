@@ -104,6 +104,37 @@
     return CHAMPIONS[ch] || { roles: ["Flex"], dmg: "Mixed", engage: 0.55, frontline: 0.50, early_prio: 0.60, scaling: 0.70 };
   }
 
+  function getTeamTricode(name) {
+    const n = (name || "").trim();
+    const map = {
+      "Cloud9 Kia": "C9",
+      "Team Liquid Alienware": "TL",
+      "FlyQuest": "FLY",
+      "Shopify Rebellion": "SR",
+      "LYON": "LYON",
+      "100 Thieves": "100T",
+      "Dignitas": "DIG",
+      "Sentinels": "SEN",
+      "Disguised": "DSG",
+    };
+    if (map[n]) return map[n];
+    const words = n.split(/\s+/).filter(Boolean);
+    if (words.length >= 2) return words.map((w) => w[0].toUpperCase()).join("").slice(0, 4);
+    return n.slice(0, 4).toUpperCase();
+  }
+
+  function getTeamCompactName(name) {
+    const n = (name || "").trim();
+    if (n === "Team Liquid Alienware") return "Team Liquid";
+    if (n === "Shopify Rebellion") return "Shopify Reb.";
+    return n.length > 14 ? n.slice(0, 13) + "…" : n;
+  }
+
+  function shortRoleCode(role) {
+    const map = { Top: "TOP", Jungle: "JNG", Mid: "MID", Bot: "BOT", Support: "SUP", Flex: "FLX" };
+    return map[role] || role.slice(0, 3).toUpperCase();
+  }
+
   // Build realistic prior-game Fearless burn pools per opponent matchup
   function buildPriorGamesPicks(c9Prof, oppProf, gameNum) {
     if (gameNum <= 1) return [];
@@ -500,9 +531,9 @@
 
     document.getElementById("fearless-count-badge").textContent = `${ev.lockedSet.size} Fearless Locked`;
     document.getElementById("blue-team-label").textContent =
-      state.c9Side === "blue" ? `${c9Prof.name} (Blue)` : `${oppProf.name} (Blue)`;
+      state.c9Side === "blue" ? `${getTeamCompactName(c9Prof.name)} (Blue)` : `${getTeamCompactName(oppProf.name)} (Blue)`;
     document.getElementById("red-team-label").textContent =
-      state.c9Side === "red" ? `${c9Prof.name} (Red)` : `${oppProf.name} (Red)`;
+      state.c9Side === "red" ? `${getTeamCompactName(c9Prof.name)} (Red)` : `${getTeamCompactName(oppProf.name)} (Red)`;
 
     // Map slots
     const slotValues = {};
@@ -522,7 +553,7 @@
           const val = slotValues[sl];
           const isAct = activeMeta && activeMeta.slot === sl;
           return `<div class="ban-chip ${val ? "filled" : ""} ${isAct ? "active-slot" : ""}" title="${val || sl}">${
-            val ? val.slice(0, 7) : sl
+            val || sl
           }</div>`;
         })
         .join("");
@@ -536,10 +567,10 @@
         .map((sl) => {
           const val = slotValues[sl];
           const isAct = activeMeta && activeMeta.slot === sl;
-          const role = val ? getArch(val).roles[0] : "OPEN";
+          const role = val ? shortRoleCode(getArch(val).roles[0]) : "OPEN";
           return `<div class="pick-slot ${val ? sideClass : ""} ${isAct ? "active-slot" : ""}">
             <span class="slot-code">${sl}</span>
-            <span class="slot-champ">${val || "Awaiting Pick..."}</span>
+            <span class="slot-champ">${val || "Awaiting..."}</span>
             <span class="slot-role">${role}</span>
           </div>`;
         })
@@ -610,19 +641,21 @@
       <span class="stat-pill">${oppProf.name} G3+ WR: ${(oppProf.fearless_g3plus_win_rate * 100).toFixed(1)}% (n=${oppProf.fearless_g3plus_games})</span>
     `;
 
-    // Sparkline SVG
+    // Sparkline SVG (left label gutter x=8..36 separated from plot area x=44..366)
     const svg = document.getElementById("wr-sparkline");
     const w = 380;
     const h = 86;
+    const plotX0 = 44;
+    const plotW = w - plotX0 - 14;
     const pts = state.winHistory.map((v, idx) => {
-      const x = 14 + (idx / 20) * (w - 28);
+      const x = plotX0 + (idx / 20) * plotW;
       const y = h - 12 - ((v - 0.25) / 0.5) * (h - 24);
       return `${x.toFixed(1)},${Math.min(h - 8, Math.max(8, y)).toFixed(1)}`;
     });
     const midY = (h / 2).toFixed(1);
     svg.innerHTML = `
-      <line x1="10" y1="${midY}" x2="${w - 10}" y2="${midY}" stroke="rgba(148,163,184,0.25)" stroke-dasharray="3,3" />
-      <text x="12" y="${midY - 4}" fill="#64748b" font-size="9" font-family="JetBrains Mono">50%</text>
+      <text x="8" y="${parseFloat(midY) + 3}" fill="#94a3b8" font-size="9.5" font-family="JetBrains Mono">50%</text>
+      <line x1="${plotX0 - 6}" y1="${midY}" x2="${w - 10}" y2="${midY}" stroke="rgba(148,163,184,0.25)" stroke-dasharray="3,3" />
       ${pts.length > 1 ? `<polyline fill="none" stroke="#00aeef" stroke-width="2.4" points="${pts.join(" ")}" />` : ""}
       ${state.winHistory
         .map((v, idx) => {
@@ -820,7 +853,7 @@
           <div class="macro-row-head">
             <span style="color:#38bdf8">C9 ${c9p}%</span>
             <strong>${label}</strong>
-            <span style="color:#fb7185">${oppProf.name.split(" ")[0]} ${oppp}%</span>
+            <span style="color:#fb7185">${getTeamTricode(oppProf.name)} ${oppp}%</span>
           </div>
           <div class="dual-bar">
             <div class="dual-half left"><div class="fill-c9" style="width:${c9p}%"></div></div>

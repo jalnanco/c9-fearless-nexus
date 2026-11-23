@@ -231,7 +231,7 @@ select:focus, input[type="search"]:focus {
 /* Main 3-Column Grid */
 .workspace {
   display: grid;
-  grid-template-columns: 348px minmax(480px, 1fr) 374px;
+  grid-template-columns: 388px minmax(470px, 1fr) 368px;
   gap: 12px;
   padding: 12px 16px 16px;
   max-width: 1920px;
@@ -291,12 +291,14 @@ select:focus, input[type="search"]:focus {
 /* Left Column: Draft Board */
 .draft-sides-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 8px;
   margin-bottom: 10px;
 }
 
 .side-column {
+  min-width: 0;
+  overflow: hidden;
   background: var(--bg-slot);
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 9px;
@@ -334,8 +336,8 @@ select:focus, input[type="search"]:focus {
 
 .bans-row {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 3px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
   margin-bottom: 7px;
 }
 
@@ -347,10 +349,10 @@ select:focus, input[type="search"]:focus {
   font-family: var(--font-mono);
   font-size: 9.5px;
   color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 2px;
+  display: block;
+  line-height: 20px;
+  text-align: center;
+  padding: 0 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
