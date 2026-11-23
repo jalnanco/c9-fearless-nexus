@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>C9 Fearless Nexus — Macro Scouting &amp; Fearless Draft Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-cluster">
+      <div class="c9-mark" aria-hidden="true">
+        <svg viewBox="0 0 40 28" width="36" height="26" fill="none">
+          <path d="M13.5 22.5H28.2C31.9 22.5 34.8 19.6 34.8 16C34.8 12.7 32.3 10 29.1 9.6C28.1 5.6 24.5 2.7 20.1 2.7C15 2.7 10.9 6.8 10.9 11.9C10.9 12.3 10.9 12.7 11 13.1C7.9 13.6 5.6 16.2 5.6 19.4C5.6 21.1 6.9 22.5 8.7 22.5H13.5Z" stroke="#00AEEF" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="20.2" cy="13.8" r="3.2" fill="#38BDF8"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title-row">
+          <h1>C9 FEARLESS NEXUS</h1>
+          <span class="badge-jb">Built with JetBrains</span>
+          <span id="data-mode-pill" class="badge-mode">GRID Aggregate Showcase</span>
+        </div>
+        <p class="brand-sub">Cloud9 Kia League of Legends · Series-Aware Fearless Draft &amp; Early-Macro Scouting Engine</p>
+      </div>
+    </div>
+
+    <div class="controls-cluster">
+      <label class="control-field">
+        <span>Opponent Matchup</span>
+        <select id="opponent-select" aria-label="Select Opponent Team"></select>
+      </label>
+
+      <div class="control-field">
+        <span>Cloud9 Side</span>
+        <div class="segmented" role="group" aria-label="Cloud9 Draft Side">
+          <button type="button" id="side-blue-btn" class="seg-btn active" data-side="blue">Blue (B1)</button>
+          <button type="button" id="side-red-btn" class="seg-btn" data-side="red">Red (R5)</button>
+        </div>
+      </div>
+
+      <div class="control-field">
+        <span>Series State (Fearless Lock)</span>
+        <div class="segmented" id="game-tabs" role="group" aria-label="Fearless Series Game">
+          <button type="button" class="seg-btn" data-game="1">G1 (0)</button>
+          <button type="button" class="seg-btn" data-game="2">G2 (-10)</button>
+          <button type="button" class="seg-btn active" data-game="3">G3 (-20)</button>
+          <button type="button" class="seg-btn" data-game="4">G4 (-30)</button>
+          <button type="button" class="seg-btn" data-game="5">G5 (-40)</button>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button type="button" id="auto-step-btn" class="btn btn-primary" title="Execute top AI-recommended draft step">Auto-Step</button>
+        <button type="button" id="sim-full-btn" class="btn btn-secondary" title="Auto-complete remaining draft steps">Sim Draft</button>
+        <button type="button" id="reset-draft-btn" class="btn btn-ghost">Reset</button>
+        <label class="btn btn-outline file-label" title="Zero-Redistribution client-side loader for local GRID meta/*.csv or events_*.jsonl.zst">
+          <input type="file" id="local-grid-input" multiple hidden />
+          <span>Load Local GRID</span>
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <!-- LEFT COLUMN: 20-Step Tournament Draft & Champion Selector -->
+    <section class="panel draft-panel" aria-label="Tournament Draft Board">
+      <div class="panel-header">
+        <div>
+          <h2>20-Step Tournament Draft</h2>
+          <p id="active-step-banner" class="step-banner">Step 1/20 · Ban Phase 1 · Blue Ban 1</p>
+        </div>
+        <span id="fearless-count-badge" class="pill-gold">20 Fearless Locked</span>
+      </div>
+
+      <div class="draft-sides-grid">
+        <div class="side-column side-blue">
+          <div class="side-header">
+            <span class="side-dot blue"></span>
+            <strong id="blue-team-label">Cloud9 Kia (Blue)</strong>
+          </div>
+          <div class="bans-row" id="blue-bans"></div>
+          <div class="picks-list" id="blue-picks"></div>
+        </div>
+
+        <div class="side-column side-red">
+          <div class="side-header">
+            <span class="side-dot red"></span>
+            <strong id="red-team-label">LYON (Red)</strong>
+          </div>
+          <div class="bans-row" id="red-bans"></div>
+          <div class="picks-list" id="red-picks"></div>
+        </div>
+      </div>
+
+      <div class="fearless-vault">
+        <div class="vault-header">
+          <span>Prior-Series Fearless Burn Vault</span>
+          <small id="vault-subtitle">Games 1–2 Picked Champions (Unavailable)</small>
+        </div>
+        <div id="fearless-tags" class="vault-tags"></div>
+      </div>
+
+      <div class="picker-box">
+        <div class="picker-toolbar">
+          <input type="search" id="champ-search" placeholder="Filter champion (e.g. Vi, Orianna)..." aria-label="Search champion" />
+          <div class="role-pills" id="role-filter">
+            <button type="button" class="role-btn active" data-role="All">All</button>
+            <button type="button" class="role-btn" data-role="Top">Top</button>
+            <button type="button" class="role-btn" data-role="Jungle">Jng</button>
+            <button type="button" class="role-btn" data-role="Mid">Mid</button>
+            <button type="button" class="role-btn" data-role="Bot">Bot</button>
+            <button type="button" class="role-btn" data-role="Support">Sup</button>
+          </div>
+        </div>
+        <div id="champ-grid" class="champ-grid"></div>
+      </div>
+    </section>
+
+    <!-- CENTER COLUMN: Live Win-Rate Impact, Recommendations & Opponent Pool Pinch -->
+    <section class="panel intel-panel" aria-label="Live Draft Analytics and Pool Pinch">
+      <!-- Live Winrate & Comp Balance -->
+      <div class="winrate-card">
+        <div class="wr-top-row">
+          <div>
+            <span class="eyebrow">LIVE BAYESIAN DRAFT WIN PROBABILITY</span>
+            <div class="wr-headline">
+              <strong id="c9-wr-value" class="wr-big">54.2%</strong>
+              <span id="c9-wr-delta" class="wr-delta positive">+2.0% vs Baseline</span>
+            </div>
+          </div>
+          <div class="team-record-pills" id="matchup-sample-badges"></div>
+        </div>
+
+        <div class="wr-bar-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="54">
+          <div id="c9-wr-fill" class="wr-bar-c9" style="width: 54.2%"></div>
+        </div>
+        <div class="wr-bar-labels">
+          <span id="wr-label-c9">Cloud9 Kia · 54.2%</span>
+          <span id="wr-label-opp">Opponent · 45.8%</span>
+        </div>
+
+        <div class="trajectory-and-comp">
+          <div class="spark-box">
+            <div class="sub-label">Step-by-Step Winrate Trajectory (Steps 0 → 20)</div>
+            <svg id="wr-sparkline" viewBox="0 0 380 86" preserveAspectRatio="none" aria-label="Winrate progression chart"></svg>
+          </div>
+          <div class="comp-bars-box" id="comp-balance-bars"></div>
+        </div>
+      </div>
+
+      <!-- Actionable Recommendations -->
+      <div class="recs-grid">
+        <div class="rec-card">
+          <div class="rec-header">
+            <h3>Priority Target Bans (Pinch Max)</h3>
+            <span class="rec-tag red"> Hurt Opponent Pool</span>
+          </div>
+          <div id="ban-recs-list" class="rec-list"></div>
+        </div>
+
+        <div class="rec-card">
+          <div class="rec-header">
+            <h3>Optimal Cloud9 Picks (EV Max)</h3>
+            <span class="rec-tag cyan">Synergy + Mastery</span>
+          </div>
+          <div id="pick-recs-list" class="rec-list"></div>
+        </div>
+      </div>
+
+      <!-- Opponent 5-Player Fearless Pinch Matrix -->
+      <div class="pinch-section">
+        <div class="section-title-row">
+          <h3>Opponent 5-Player Fearless Pool Pinch Matrix</h3>
+          <span id="pinch-summary-note" class="mono-note">Shannon Entropy &amp; Dirichlet Comfort Depletion</span>
+        </div>
+        <div id="pinch-cards-grid" class="pinch-grid"></div>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN: Summoner's Rift Tactical Macro Canvas & How-To-Win Brief -->
+    <section class="panel macro-panel" aria-label="Early Macro Scouting Canvas">
+      <div class="panel-header">
+        <div>
+          <h2>Early-Macro Tactical Context</h2>
+          <p class="step-banner" id="macro-sample-subtitle">2025–2026 GRID Telemetry · First 14m Pathing &amp; Objectives</p>
+        </div>
+      </div>
+
+      <div class="rift-map-container">
+        <svg id="rift-svg" viewBox="0 0 360 360" aria-label="Summoner's Rift Early Macro Heatmap"></svg>
+        <div class="map-legend">
+          <span><i class="dot c9"></i>C9 1st Scuttle Vector</span>
+          <span><i class="dot opp"></i>Opp 1st Scuttle Vector</span>
+          <span><i class="dot heat"></i>Opp Early Kill Hotspots</span>
+        </div>
+      </div>
+
+      <div class="macro-metrics-box" id="macro-comparison-bars"></div>
+
+      <div class="how-to-win-box">
+        <div class="htw-header">
+          <span class="eyebrow">DATA-BACKED COACHING BRIEF</span>
+          <strong>Cloud9 "How-to-Win" Gameplan</strong>
+        </div>
+        <ul id="how-to-win-list" class="htw-list"></ul>
+      </div>
+    </section>
+  </main>
+
+  <script src="showcase_aggregates.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

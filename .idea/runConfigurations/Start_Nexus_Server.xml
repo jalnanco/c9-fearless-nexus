@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Start Nexus Server" type="PythonConfigurationType" factoryName="Python">
+    <module name="c9-fearless-nexus" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <option name="SCRIPT_NAME" value="backend.server" />
+    <option name="MODULE_MODE" value="true" />
+    <envs>
+      <env name="STL_DATA_DIR" value="../stl-hackathon-2026-grid-starter" />
+      <env name="PORT" value="8787" />
+    </envs>
+    <method v="2" />
+  </configuration>
+</component>

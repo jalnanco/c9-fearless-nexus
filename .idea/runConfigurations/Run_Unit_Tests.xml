@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run Unit Tests" type="tests" factoryName="Unittests">
+    <module name="c9-fearless-nexus" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <option name="_new_target" value="$PROJECT_DIR$/tests" />
+    <option name="_new_targetType" value="&quot;PATH&quot;" />
+    <method v="2" />
+  </configuration>
+</component>
